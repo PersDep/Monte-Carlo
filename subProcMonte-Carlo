@@ -1,0 +1,39 @@
+#!/bin/bash
+
+LocalLowerBound=$1
+LocalUpperBound=$2
+UpperBound=$3
+LowerBound=$4
+FloatDigits=$5
+Iters=$6
+
+function Calculate
+{
+	echo `bc <<< "scale=$FloatDigits; $1"`
+}
+
+function f
+{
+	x=$1
+	echo `Calculate "($x * $x * $x)"`
+}
+
+function UniformDistribution
+{
+	echo 0.5
+}
+
+SegmentX=`Calculate "($LocalUpperBound - $LocalLowerBound)"`
+SegmentY=`Calculate "($UpperBound - $LowerBound)"`
+Counter=0
+for i in `seq $Iters`; do
+	RandX=`UniformDistribution`
+	RandX=`Calculate "$RandX * $SegmentX + $LocalLowerBound"`
+	RandY=`UniformDistribution`
+	RandY=`Calculate "$RandY * $SegmentY + $LowerBound"`
+	
+	Value=`f $RandX`
+	Counter=`Calculate "$Counter + ($Value > $RandY)"`
+done
+
+echo `Calculate "($Counter / $Iters)"`

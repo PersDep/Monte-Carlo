@@ -1,0 +1,34 @@
+#!/bin/bash
+
+AnalyticRes=0.25
+UpperBound=1
+LowerBound=0
+FloatDigits=6
+Iters=100
+ProcAmount=4
+HostName=$1
+
+function Calculate
+{
+	echo `bc <<< "scale=$FloatDigits; $1"`
+}
+
+Segment=`Calculate "($UpperBound - $LowerBound) / $ProcAmount"`
+for i in `seq $ProcAmount`; do
+	LocalLowerBound=`Calculate "$LowerBound + ($i - 1) * $Segment"`
+	LocalUpperBound=`Calculate "$LowerBound + $i * $Segment"`
+	echo -e "$LocalLowerBound $LocalUpperBound $UpperBound $LowerBound $FloatDigits $Iters" >> .tmp
+done
+
+RES=`parallel -a .tmp --colsep ' ' ./subProcMonte-Carlo {}`
+
+RES=`echo $RES | tr ' ' '\n' | awk '{s += $HostName} END {print s}'`
+RES=`Calculate "$RES / $ProcAmount"`
+
+ERR=`Calculate "$RES - $AnalyticRes"`
+
+echo "Result          :" $RES 
+echo "Analytic result :" $AnalyticRes 
+echo "Absolute Error  :" $ERR
+
+rm -f .tmp
