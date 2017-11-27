@@ -20,7 +20,7 @@ function f
 
 function UniformDistribution
 {
-	echo `awk -v "seed=$[(RANDOM & 32767) + 32768 * (RANDOM & 32767)]" \ 'BEGIN { srand(seed); printf("%.6f\n", rand()) }'
+	echo `awk -v "seed=$[(RANDOM & 32767) + 32768 * (RANDOM & 32767)]" \ 'BEGIN { srand(seed); printf("%.6f\n", rand()) }'`
 }
 
 SegmentX=`Calculate "($LocalUpperBound - $LocalLowerBound)"`

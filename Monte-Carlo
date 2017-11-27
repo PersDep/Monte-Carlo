@@ -4,7 +4,7 @@ AnalyticRes=0.25
 UpperBound=1
 LowerBound=0
 FloatDigits=6
-Iters=100
+Iters=200
 ProcAmount=4
 HostName=$1
 
@@ -20,15 +20,21 @@ for i in `seq $ProcAmount`; do
 	echo -e "$LocalLowerBound $LocalUpperBound $UpperBound $LowerBound $FloatDigits $Iters" >> .tmp
 done
 
-RES=`parallel -a .tmp --colsep ' ' ./subProcMonte-Carlo {}`
+if [ -z "$HostName" ] 
+	then
+		RES=`parallel -a .tmp --colsep ' ' ./subProcMonte-Carlo {}`
+	else
+		scp subProcMonte-Carlo $HostName:~/
+		RES=`parallel -S $HostName -a .tmp --colsep ' ' ./subProcMonte-Carlo {}`
+fi
 
 RES=`echo $RES | tr ' ' '\n' | awk '{s += $HostName} END {print s}'`
 RES=`Calculate "$RES / $ProcAmount"`
 
-ERR=`Calculate "$RES - $AnalyticRes"`
+ERR=`Calculate "$RES - $AnalyticRes" | sed "s/^-//"`
 
-echo "Result          :" $RES 
+echo "Result          :" 0$RES 
 echo "Analytic result :" $AnalyticRes 
-echo "Absolute Error  :" $ERR
+echo "Absolute Error  :" 0$ERR
 
 rm -f .tmp
